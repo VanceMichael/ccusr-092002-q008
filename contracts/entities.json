@@ -1,0 +1,17 @@
+{
+  "schema_version": "1",
+  "domain": "院内制剂出处与质控放行",
+  "required_fields": [
+    "formula_ref",
+    "formula_revision",
+    "lot_ref",
+    "inspection_ref",
+    "license_scope"
+  ],
+  "time_format": "ISO 8601 with offset",
+  "sample": {
+    "formula_ref": "FORMULA-DEMO",
+    "formula_revision": 2,
+    "lot_ref": "LOT-DEMO"
+  }
+}
