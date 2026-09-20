@@ -1,17 +1,58 @@
 {
-  "schema_version": "1",
+  "schema_version": "2",
   "domain": "院内制剂出处与质控放行",
-  "required_fields": [
-    "formula_ref",
-    "formula_revision",
-    "lot_ref",
-    "inspection_ref",
-    "license_scope"
-  ],
   "time_format": "ISO 8601 with offset",
+  "weight_unit": "milligram (integer, 不得使用浮点)",
+  "roles": {
+    "warehouse": "仓储：收货、分装、合批、称量、抽样、处置",
+    "inspector": "检验人：开检验单、录入读数、签字结论",
+    "production_manager": "配制负责人：开立配制批次、确认投料；不得代替检验人签字、不得放行",
+    "pharmacy_head": "药事负责人：放行/暂缓/拒收、查看完整谱系"
+  },
+  "invariants": [
+    "分装各子批次重量之和必须等于源批次领出重量；合批新批次重量必须等于各来源领出重量之和",
+    "抽样耗料逐笔入重量台账，任何动作后入量减出量不得为负",
+    "test_readings 只追加，数据库触发器禁止 UPDATE/DELETE；复检为新抽样+新检验单，第一次失败读数永久保留",
+    "检验单结论一次作出不可更改；任一读数 fail 则只能判 unqualified",
+    "物料 had_failure 一经置位不可清除；其全部 split/merge 后代与已投料成品同步阻断，已放行成品转 recalled",
+    "放行只能由 pharmacy_head 签字；放行前必须有最新合格成品检验且全部投料物料无失败标记",
+    "外部接口只返回合格范围与处置状态，不返回供应商、产地、凭证、读数实测值、结论或人员"
+  ],
+  "endpoints": {
+    "internal": [
+      "POST /v1/staff",
+      "POST /v1/materials",
+      "POST /v1/suppliers",
+      "POST /v1/suppliers/{supplier_id}/certificates",
+      "POST /v1/inbound-lots",
+      "POST /v1/material-lots/{lot_ref}/split",
+      "POST /v1/material-lots/merge",
+      "POST /v1/material-lots/{lot_ref}/disposals",
+      "POST /v1/samples",
+      "POST /v1/inspections",
+      "POST /v1/inspections/{inspection_ref}/readings",
+      "POST /v1/inspections/{inspection_ref}/conclude",
+      "POST /v1/compound-batches",
+      "POST /v1/compound-batches/{batch_ref}/weighings",
+      "POST /v1/compound-batches/{batch_ref}/charge",
+      "POST /v1/compound-batches/{batch_ref}/release",
+      "POST /v1/compound-batches/{batch_ref}/hold",
+      "POST /v1/compound-batches/{batch_ref}/reject",
+      "GET  /v1/internal/compound-batches/{batch_ref}/lineage?viewer_id=...",
+      "GET  /v1/internal/material-lots/{lot_ref}/ledger?viewer_id=...",
+      "GET  /v1/internal/material-lots/{lot_ref}/affected-batches?viewer_id=..."
+    ],
+    "public": [
+      "GET /v1/public/compound-batches/{batch_ref}"
+    ]
+  },
+  "public_response_fields": ["batch_ref", "qualified_ranges[].test_item", "qualified_ranges[].spec_min", "qualified_ranges[].spec_max", "qualified_ranges[].unit", "disposition_status"],
+  "disposition_status_values": ["released", "held", "rejected", "recalled", "pending"],
   "sample": {
     "formula_ref": "FORMULA-DEMO",
     "formula_revision": 2,
-    "lot_ref": "LOT-DEMO"
+    "lot_ref": "LOT-DEMO",
+    "inspection_ref": "INP-DEMO",
+    "license_scope": "中药材批发"
   }
 }

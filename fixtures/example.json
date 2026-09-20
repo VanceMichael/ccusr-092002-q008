@@ -1,5 +1,121 @@
 {
-  "formula_ref": "FORMULA-DEMO",
-  "formula_revision": 2,
-  "lot_ref": "LOT-DEMO"
+  "note": "示例数据均为虚构，不含真实个人资料或真实检验读数；*_ref 为提交方对记录的来源编号，重量单位为整数毫克，时间为带偏移 ISO 8601。",
+  "staff": [
+    {"id": "stf-wh-demo", "name": "示例仓管员", "role": "warehouse"},
+    {"id": "stf-qc-demo", "name": "示例检验师", "role": "inspector"},
+    {"id": "stf-pm-demo", "name": "示例配制负责人", "role": "production_manager"},
+    {"id": "stf-ph-demo", "name": "示例药事负责人", "role": "pharmacy_head"}
+  ],
+  "requests": {
+    "receive_inbound_lot": {
+      "method": "POST",
+      "path": "/v1/inbound-lots",
+      "body": {
+        "lot_ref": "LOT-HQ-20260920-01",
+        "supplier_id": "sup-demo-gansu",
+        "material_code": "HQ",
+        "net_weight_mg": 1000000,
+        "received_at": "2026-09-20T09:00:00+08:00",
+        "receiver_id": "stf-wh-demo"
+      }
+    },
+    "split": {
+      "method": "POST",
+      "path": "/v1/material-lots/LOT-HQ-20260920-01/split",
+      "body": {
+        "weight_mg": 1000000,
+        "parts": [
+          {"lot_ref": "LOT-HQ-20260920-01-A", "weight_mg": 600000},
+          {"lot_ref": "LOT-HQ-20260920-01-B", "weight_mg": 400000}
+        ],
+        "operator_id": "stf-wh-demo"
+      }
+    },
+    "merge": {
+      "method": "POST",
+      "path": "/v1/material-lots/merge",
+      "body": {
+        "target_lot_ref": "LOT-HQ-MERGED-01",
+        "sources": [
+          {"lot_ref": "LOT-HQ-20260920-01-A", "weight_mg": 200000},
+          {"lot_ref": "LOT-HQ-20260920-01-B", "weight_mg": 200000}
+        ],
+        "operator_id": "stf-wh-demo"
+      }
+    },
+    "draw_sample": {
+      "method": "POST",
+      "path": "/v1/samples",
+      "body": {
+        "sample_ref": "SMP-DEMO-01",
+        "subject_type": "material_lot",
+        "subject_ref": "LOT-HQ-MERGED-01",
+        "kind": "initial",
+        "qty_mg": 1000,
+        "sampled_at": "2026-09-20T10:00:00+08:00",
+        "sampler_id": "stf-wh-demo"
+      }
+    },
+    "retest_sample": {
+      "method": "POST",
+      "path": "/v1/samples",
+      "body": {
+        "sample_ref": "SMP-DEMO-02",
+        "subject_type": "material_lot",
+        "subject_ref": "LOT-HQ-MERGED-01",
+        "kind": "retest",
+        "retest_of_ref": "SMP-DEMO-01",
+        "qty_mg": 1000,
+        "sampler_id": "stf-qc-demo"
+      }
+    },
+    "add_reading": {
+      "method": "POST",
+      "path": "/v1/inspections/INP-DEMO-01/readings",
+      "body": {
+        "test_item": "含量测定",
+        "spec_min": "90",
+        "spec_max": "110",
+        "unit": "%",
+        "observed_value": "98.4",
+        "measured_at": "2026-09-20T11:00:00+08:00",
+        "inspector_id": "stf-qc-demo"
+      }
+    },
+    "conclude_inspection": {
+      "method": "POST",
+      "path": "/v1/inspections/INP-DEMO-01/conclude",
+      "body": {"inspector_id": "stf-qc-demo"}
+    },
+    "weigh": {
+      "method": "POST",
+      "path": "/v1/compound-batches/BATCH-DEMO-01/weighings",
+      "body": {"lot_ref": "LOT-HQ-MERGED-01", "weight_mg": 350000, "weigher_id": "stf-wh-demo"}
+    },
+    "charge": {
+      "method": "POST",
+      "path": "/v1/compound-batches/BATCH-DEMO-01/charge",
+      "body": {"manager_id": "stf-pm-demo"}
+    },
+    "release": {
+      "method": "POST",
+      "path": "/v1/compound-batches/BATCH-DEMO-01/release",
+      "body": {"head_id": "stf-ph-demo", "reason": "成品检验合格，物料谱系无不合格记录"}
+    },
+    "public_query": {
+      "method": "GET",
+      "path": "/v1/public/compound-batches/BATCH-DEMO-01",
+      "response_example": {
+        "batch_ref": "BATCH-DEMO-01",
+        "qualified_ranges": [
+          {"test_item": "含量测定", "spec_min": "90", "spec_max": "110", "unit": "%"}
+        ],
+        "disposition_status": "released"
+      }
+    },
+    "internal_lineage": {
+      "method": "GET",
+      "path": "/v1/internal/compound-batches/BATCH-DEMO-01/lineage?viewer_id=stf-ph-demo"
+    }
+  }
 }
