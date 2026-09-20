@@ -1,5 +1,5 @@
 {
-  "schema_version": "1",
+  "schema_version": "2",
   "domain": "院内制剂出处与质控放行",
   "required_fields": [
     "formula_ref",
@@ -9,6 +9,45 @@
     "license_scope"
   ],
   "time_format": "ISO 8601 with offset",
+  "weight_unit": "克（数值）",
+  "identity_header": "X-User-ID",
+  "roles": [
+    "warehouse",
+    "inspector",
+    "compounding_lead",
+    "qa_release"
+  ],
+  "chain": [
+    "receipt",
+    "sample",
+    "inspection_round",
+    "receipt_decision",
+    "container",
+    "merge",
+    "batch",
+    "weighing",
+    "finished_inspection",
+    "release_decision"
+  ],
+  "rules": [
+    "检验读数按轮次追加，复检不得覆盖第一次失败读数；存在任一轮失败即不得放行",
+    "配制负责人不得代替检验人签字，也不得作为成品放行签字人",
+    "放行时闭包复核全部上游来货处置状态，不合格原料阻断所有下游成品批",
+    "分装不超过来货重量，合批产出等于来源取用量之和，投料逐笔核对剩余量",
+    "外部查询仅返回合格范围与处置状态"
+  ],
+  "public_receipt_fields": [
+    "material_code",
+    "spec_min",
+    "spec_max",
+    "spec_unit",
+    "disposition"
+  ],
+  "public_batch_fields": [
+    "batch_ref",
+    "status",
+    "release"
+  ],
   "sample": {
     "formula_ref": "FORMULA-DEMO",
     "formula_revision": 2,
